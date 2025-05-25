@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Route Planner</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>Smart Route Planner</h1>
+        <p>Visualize and compare different pathfinding algorithms</p>
+    </header>
+
+    <div class="container">
+        <div class="controls">
+            <div class="algorithm-selection">
+                <h2>Select Algorithm</h2>
+                <select id="algorithm">
+                    <option value="dijkstra">Dijkstra's Algorithm</option>
+                    <option value="astar">A* Search</option>
+                    <option value="bfs">Breadth-First Search</option>
+                    <option value="dfs">Depth-First Search</option>
+                </select>
+            </div>
+
+            <div class="grid-controls">
+                <h2>Grid Controls</h2>
+                <button id="clear-grid">Clear Grid</button>
+                <button id="clear-path">Clear Path</button>
+                <button id="generate-maze">Generate Maze</button>
+            </div>
+
+            <div class="node-controls">
+                <h2>Node Controls</h2>
+                <div class="node-option">
+                    <div class="node-icon start-node"></div>
+                    <span>Start Node</span>
+                </div>
+                <div class="node-option">
+                    <div class="node-icon end-node"></div>
+                    <span>End Node</span>
+                </div>
+                <div class="node-option">
+                    <div class="node-icon wall-node"></div>
+                    <span>Wall Node</span>
+                </div>
+                <div class="node-option">
+                    <div class="node-icon visited-node"></div>
+                    <span>Visited Node</span>
+                </div>
+                <div class="node-option">
+                    <div class="node-icon path-node"></div>
+                    <span>Path Node</span>
+                </div>
+            </div>
+
+            <div class="speed-control">
+                <h2>Animation Speed</h2>
+                <input type="range" id="speed" min="1" max="100" value="50">
+                <span id="speed-value">50</span>
+            </div>
+
+            <button id="start-btn" class="start-button">Start Visualization</button>
+            
+            <div class="distance-info">
+                <h2>Distance Information</h2>
+                <div id="distance-stats">
+                    <p>Nodes visited: <span id="nodes-visited">0</span></p>
+                    <p>Path length: <span id="path-length">0</span></p>
+                    <p>Distance traveled: <span id="distance-traveled">0</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-container">
+            <div id="grid"></div>
+        </div>
+    </div>
+
+    <div class="algorithm-info">
+        <h2>Algorithm Information</h2>
+        <div id="algorithm-description">
+            <h3>Dijkstra's Algorithm</h3>
+            <p>Dijkstra's algorithm is a weighted algorithm that guarantees the shortest path. It works by visiting nodes in order of increasing distance from the start node.</p>
+            <p><strong>Time Complexity:</strong> O((V + E) log V) where V is the number of vertices and E is the number of edges.</p>
+            <p><strong>Space Complexity:</strong> O(V)</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>Created by Smart Route Planner Team | <a href="https://github.com/" target="_blank"><i class="fab fa-github"></i> GitHub</a></p>
+    </footer>
+
+    <script src="js/grid.js"></script>
+    <script src="js/algorithms.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
