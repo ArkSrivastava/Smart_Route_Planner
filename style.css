@@ -1,0 +1,353 @@
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+header {
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    color: white;
+    text-align: center;
+    padding: 2rem 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.container {
+    display: flex;
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+/* Controls Section */
+.controls {
+    flex: 0 0 300px;
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-right: 2rem;
+}
+
+.controls h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #555;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+select, button {
+    width: 100%;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+select:hover, button:hover {
+    border-color: #a777e3;
+}
+
+button {
+    background-color: #f0f0f0;
+}
+
+button:hover {
+    background-color: #e8e8e8;
+}
+
+.start-button {
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    color: white;
+    font-weight: bold;
+    border: none;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+}
+
+.start-button:hover {
+    background: linear-gradient(135deg, #5d7df9, #9666d6);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Distance Information */
+.distance-info {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.distance-info h2 {
+    font-size: 1.2rem;
+    margin-bottom: 0.8rem;
+    color: #555;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+#distance-stats p {
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+}
+
+#distance-stats span {
+    font-weight: bold;
+    color: #6e8efb;
+}
+
+/* Node Controls */
+.node-controls {
+    margin-bottom: 1.5rem;
+}
+
+.node-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+
+.node-icon {
+    width: 25px;
+    height: 25px;
+    border: 1px solid #ccc;
+    margin-right: 10px;
+    border-radius: 4px;
+}
+
+.start-node {
+    background-color: #4caf50;
+}
+
+.end-node {
+    background-color: #f44336;
+}
+
+.wall-node {
+    background-color: #333;
+}
+
+.visited-node {
+    background-color: #7986cb;
+}
+
+.path-node {
+    background-color: #ffeb3b;
+}
+
+/* Speed Control */
+.speed-control {
+    margin-bottom: 1.5rem;
+}
+
+input[type="range"] {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+/* Grid Container */
+.grid-container {
+    flex: 1;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    overflow: auto;
+}
+
+#grid {
+    display: grid;
+    grid-template-columns: repeat(25, 25px);
+    grid-template-rows: repeat(20, 25px);
+    gap: 1px;
+    margin: 0 auto;
+}
+
+.node {
+    width: 25px;
+    height: 25px;
+    border: 1px solid #eee;
+    background-color: white;
+    transition: background-color 0.3s ease;
+}
+
+.node:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.node.start {
+    background-color: #4caf50;
+}
+
+.node.end {
+    background-color: #f44336;
+}
+
+.node.wall {
+    background-color: #333;
+    animation: wallAnimation 0.3s ease-in-out;
+}
+
+.node.visited {
+    animation: visitedAnimation 1.5s ease-out forwards;
+}
+
+.node.path {
+    animation: pathAnimation 1.5s ease-out forwards;
+}
+
+/* Algorithm Info Section */
+.algorithm-info {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.algorithm-info h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #555;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+.algorithm-info h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: #6e8efb;
+}
+
+.algorithm-info p {
+    margin-bottom: 1rem;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 1.5rem;
+    background-color: #333;
+    color: white;
+    margin-top: 2rem;
+}
+
+footer a {
+    color: #a777e3;
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+/* Animations */
+@keyframes visitedAnimation {
+    0% {
+        transform: scale(0.3);
+        background-color: rgba(0, 0, 66, 0.75);
+        border-radius: 100%;
+    }
+    50% {
+        background-color: rgba(17, 104, 217, 0.75);
+    }
+    75% {
+        transform: scale(1.2);
+        background-color: rgba(0, 217, 159, 0.75);
+    }
+    100% {
+        transform: scale(1);
+        background-color: rgba(0, 190, 218, 0.75);
+    }
+}
+
+@keyframes pathAnimation {
+    0% {
+        transform: scale(0.6);
+        background-color: rgba(255, 254, 106, 0.75);
+    }
+    50% {
+        transform: scale(1.2);
+        background-color: rgba(255, 254, 106, 0.75);
+    }
+    100% {
+        transform: scale(1);
+        background-color: rgba(255, 254, 106, 0.75);
+    }
+}
+
+@keyframes wallAnimation {
+    0% {
+        transform: scale(0.6);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .controls {
+        flex: none;
+        margin-right: 0;
+        margin-bottom: 2rem;
+    }
+    
+    #grid {
+        grid-template-columns: repeat(20, 25px);
+        grid-template-rows: repeat(15, 25px);
+    }
+}
+
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    #grid {
+        grid-template-columns: repeat(15, 25px);
+        grid-template-rows: repeat(15, 25px);
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.5rem;
+    }
+    
+    #grid {
+        grid-template-columns: repeat(10, 25px);
+        grid-template-rows: repeat(10, 25px);
+    }
+}
