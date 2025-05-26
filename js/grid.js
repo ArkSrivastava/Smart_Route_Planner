@@ -9,7 +9,11 @@ class Grid {
         this.isMousePressed = false;
         this.currentNodeType = 'wall'; // Default node type to create on drag
         this.gridElement = document.getElementById('grid');
+        this.allowDiagonal = false; // Default to no diagonal movement
+        this.useWeights = false; // Default to no weighted nodes
+        this.keyPressed = null; // Track key presses for node type selection
         this.initializeGrid();
+        this.addKeyboardListeners();
     }
 
     // Initialize the grid with nodes
@@ -53,6 +57,8 @@ class Grid {
             isStart: false,
             isEnd: false,
             isWall: false,
+            isWeight: false,
+            weight: 1, // Default weight is 1 (normal cost)
             isVisited: false,
             distance: Infinity,
             previousNode: null,
@@ -64,6 +70,9 @@ class Grid {
 
         // Store node reference in the DOM element for easy access
         nodeElement.node = node;
+        
+        // Add tooltip for better UX
+        nodeElement.title = `Node at (${row}, ${col})`;
 
         return node;
     }
@@ -96,13 +105,39 @@ class Grid {
         this.endNode = node;
     }
 
-    // Toggle wall status for a node
-    toggleWall(node) {
+    // Toggle node type (wall or weight)
+    toggleNodeType(node) {
         // Don't toggle if it's start or end node
         if (node.isStart || node.isEnd) return;
-
-        node.isWall = !node.isWall;
-        node.element.classList.toggle('wall');
+        
+        // Handle different node types based on key pressed
+        if (this.keyPressed === 'w' && this.useWeights) {
+            // Toggle weight node
+            if (node.isWall) {
+                // Remove wall if exists
+                node.isWall = false;
+                node.element.classList.remove('wall');
+            }
+            
+            // Toggle weight status
+            node.isWeight = !node.isWeight;
+            node.weight = node.isWeight ? 5 : 1; // Weight of 5 for weighted nodes
+            node.element.classList.toggle('weight');
+            node.element.title = node.isWeight ? `Weighted Node (Cost: ${node.weight})` : `Node at (${node.row}, ${node.col})`;
+        } else {
+            // Default to wall toggle
+            if (node.isWeight) {
+                // Remove weight if exists
+                node.isWeight = false;
+                node.weight = 1;
+                node.element.classList.remove('weight');
+            }
+            
+            // Toggle wall status
+            node.isWall = !node.isWall;
+            node.element.classList.toggle('wall');
+            node.element.title = node.isWall ? 'Wall Node' : `Node at (${node.row}, ${node.col})`;
+        }
     }
 
     // Add mouse event listeners for grid interaction
@@ -110,6 +145,7 @@ class Grid {
         // Mouse down event
         this.gridElement.addEventListener('mousedown', (e) => {
             if (e.target.classList.contains('node')) {
+                e.preventDefault(); // Prevent default drag behavior
                 this.isMousePressed = true;
                 const node = e.target.node;
                 
@@ -120,13 +156,13 @@ class Grid {
                     this.currentNodeType = 'end';
                 } else {
                     this.currentNodeType = 'wall';
-                    this.toggleWall(node);
+                    this.toggleNodeType(node);
                 }
             }
         });
 
         // Mouse enter event (for dragging)
-        this.gridElement.addEventListener('mouseenter', (e) => {
+        this.gridElement.addEventListener('mouseover', (e) => {
             if (this.isMousePressed && e.target.classList.contains('node')) {
                 const node = e.target.node;
                 
@@ -136,14 +172,69 @@ class Grid {
                 } else if (this.currentNodeType === 'end' && !node.isStart) {
                     this.setEndNode(node.row, node.col);
                 } else if (this.currentNodeType === 'wall' && !node.isStart && !node.isEnd) {
-                    this.toggleWall(node);
+                    this.toggleNodeType(node);
                 }
             }
-        }, true);
+        });
 
         // Mouse up event
         document.addEventListener('mouseup', () => {
             this.isMousePressed = false;
+            this.currentNodeType = 'wall'; // Reset to default
+        });
+        
+        // Touch events for mobile support
+        this.gridElement.addEventListener('touchstart', (e) => {
+            if (e.target.classList.contains('node')) {
+                e.preventDefault();
+                this.isMousePressed = true;
+                const node = e.target.node;
+                
+                if (node.isStart) {
+                    this.currentNodeType = 'start';
+                } else if (node.isEnd) {
+                    this.currentNodeType = 'end';
+                } else {
+                    this.currentNodeType = 'wall';
+                    this.toggleNodeType(node);
+                }
+            }
+        }, { passive: false });
+        
+        this.gridElement.addEventListener('touchmove', (e) => {
+            if (this.isMousePressed) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                
+                if (element && element.classList.contains('node')) {
+                    const node = element.node;
+                    
+                    if (this.currentNodeType === 'start' && !node.isEnd) {
+                        this.setStartNode(node.row, node.col);
+                    } else if (this.currentNodeType === 'end' && !node.isStart) {
+                        this.setEndNode(node.row, node.col);
+                    } else if (this.currentNodeType === 'wall' && !node.isStart && !node.isEnd) {
+                        this.toggleNodeType(node);
+                    }
+                }
+            }
+        }, { passive: false });
+        
+        this.gridElement.addEventListener('touchend', () => {
+            this.isMousePressed = false;
+            this.currentNodeType = 'wall';
+        });
+    }
+    
+    // Add keyboard listeners for node type selection
+    addKeyboardListeners() {
+        document.addEventListener('keydown', (e) => {
+            this.keyPressed = e.key.toLowerCase();
+        });
+        
+        document.addEventListener('keyup', () => {
+            this.keyPressed = null;
         });
     }
 
@@ -155,6 +246,8 @@ class Grid {
                 
                 // Reset node properties
                 node.isWall = false;
+                node.isWeight = false;
+                node.weight = 1;
                 node.isVisited = false;
                 node.distance = Infinity;
                 node.previousNode = null;
@@ -166,6 +259,11 @@ class Grid {
                 node.element.className = 'node';
                 if (node.isStart) node.element.classList.add('start');
                 if (node.isEnd) node.element.classList.add('end');
+                
+                // Reset tooltip
+                node.element.title = node.isStart ? 'Start Node' : 
+                                    node.isEnd ? 'End Node' : 
+                                    `Node at (${node.row}, ${node.col})`;
             }
         }
     }
@@ -187,7 +285,18 @@ class Grid {
                 // Reset path-related appearance
                 node.element.classList.remove('visited');
                 node.element.classList.remove('path');
+                
+                // Update tooltip to reflect current state
+                if (!node.isStart && !node.isEnd && !node.isWall && !node.isWeight) {
+                    node.element.title = `Node at (${node.row}, ${node.col})`;
+                }
             }
+        }
+        
+        // Hide progress bar if visible
+        const progressContainer = document.getElementById('progress-container');
+        if (progressContainer) {
+            progressContainer.style.display = 'none';
         }
     }
 
@@ -196,7 +305,7 @@ class Grid {
         // Clear the grid first
         this.clearGrid();
         
-        // Add random walls
+        // Create border walls
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.cols; col++) {
                 const node = this.grid[row][col];
@@ -204,11 +313,67 @@ class Grid {
                 // Skip start and end nodes
                 if (node.isStart || node.isEnd) continue;
                 
-                // 30% chance to create a wall
-                if (Math.random() < 0.3) {
+                // Create border walls
+                if (row === 0 || col === 0 || row === this.rows - 1 || col === this.cols - 1) {
                     node.isWall = true;
                     node.element.classList.add('wall');
+                    node.element.title = 'Wall Node';
+                    continue;
                 }
+                
+                // Add random walls and weights
+                const random = Math.random();
+                if (random < 0.25) { // 25% chance for wall
+                    node.isWall = true;
+                    node.element.classList.add('wall');
+                    node.element.title = 'Wall Node';
+                } else if (random < 0.35 && this.useWeights) { // 10% chance for weight if enabled
+                    node.isWeight = true;
+                    node.weight = 5;
+                    node.element.classList.add('weight');
+                    node.element.title = `Weighted Node (Cost: ${node.weight})`;
+                }
+            }
+        }
+        
+        // Ensure path exists between start and end
+        this.createMazePath(this.startNode, this.endNode);
+    }
+    
+    // Create a guaranteed path between two nodes in the maze
+    createMazePath(startNode, endNode) {
+        let currentRow = startNode.row;
+        let currentCol = startNode.col;
+        const endRow = endNode.row;
+        const endCol = endNode.col;
+        
+        // Create a path by moving from start to end
+        while (currentRow !== endRow || currentCol !== endCol) {
+            // Determine direction to move (horizontal or vertical)
+            if (Math.random() < 0.5) {
+                // Move horizontally if possible
+                if (currentCol !== endCol) {
+                    currentCol += currentCol < endCol ? 1 : -1;
+                } else {
+                    currentRow += currentRow < endRow ? 1 : -1;
+                }
+            } else {
+                // Move vertically if possible
+                if (currentRow !== endRow) {
+                    currentRow += currentRow < endRow ? 1 : -1;
+                } else {
+                    currentCol += currentCol < endCol ? 1 : -1;
+                }
+            }
+            
+            // Clear the node to create a path
+            const node = this.grid[currentRow][currentCol];
+            if (!node.isStart && !node.isEnd) {
+                node.isWall = false;
+                node.isWeight = false;
+                node.weight = 1;
+                node.element.className = 'node';
+                node.element.title = `Node at (${node.row}, ${node.col})`;
             }
         }
     }
@@ -218,11 +383,40 @@ class Grid {
         const neighbors = [];
         const {row, col} = node;
         
-        // Check all four directions
+        // Check all four directions (orthogonal)
         if (row > 0) neighbors.push(this.grid[row - 1][col]); // Up
         if (row < this.rows - 1) neighbors.push(this.grid[row + 1][col]); // Down
         if (col > 0) neighbors.push(this.grid[row][col - 1]); // Left
         if (col < this.cols - 1) neighbors.push(this.grid[row][col + 1]); // Right
+        
+        // Check diagonal directions if allowed
+        if (this.allowDiagonal) {
+            // Top-left
+            if (row > 0 && col > 0) {
+                // Only add diagonal if both adjacent orthogonal cells are not walls
+                if (!this.grid[row - 1][col].isWall && !this.grid[row][col - 1].isWall) {
+                    neighbors.push(this.grid[row - 1][col - 1]);
+                }
+            }
+            // Top-right
+            if (row > 0 && col < this.cols - 1) {
+                if (!this.grid[row - 1][col].isWall && !this.grid[row][col + 1].isWall) {
+                    neighbors.push(this.grid[row - 1][col + 1]);
+                }
+            }
+            // Bottom-left
+            if (row < this.rows - 1 && col > 0) {
+                if (!this.grid[row + 1][col].isWall && !this.grid[row][col - 1].isWall) {
+                    neighbors.push(this.grid[row + 1][col - 1]);
+                }
+            }
+            // Bottom-right
+            if (row < this.rows - 1 && col < this.cols - 1) {
+                if (!this.grid[row + 1][col].isWall && !this.grid[row][col + 1].isWall) {
+                    neighbors.push(this.grid[row + 1][col + 1]);
+                }
+            }
+        }
         
         // Filter out walls
         return neighbors.filter(neighbor => !neighbor.isWall);
@@ -232,12 +426,27 @@ class Grid {
     animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder, speed) {
         const animationSpeed = 101 - speed; // Convert speed to milliseconds (1-100 to 100-1)
         
+        // Show and reset progress bar
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        if (progressContainer && progressBar) {
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+        }
+        
         // Animate visited nodes
         for (let i = 0; i < visitedNodesInOrder.length; i++) {
             setTimeout(() => {
                 const node = visitedNodesInOrder[i];
                 if (!node.isStart && !node.isEnd) {
                     node.element.classList.add('visited');
+                    node.element.title = 'Visited Node';
+                }
+                
+                // Update progress bar for visited nodes animation
+                if (progressBar) {
+                    const progress = (i / visitedNodesInOrder.length) * 50; // First half of progress
+                    progressBar.style.width = `${progress}%`;
                 }
             }, i * animationSpeed);
         }
@@ -250,11 +459,25 @@ class Grid {
 
     // Animate the shortest path
     animatePath(nodesInShortestPathOrder, animationSpeed) {
+        const progressBar = document.getElementById('progress-bar');
+        
         for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
             setTimeout(() => {
                 const node = nodesInShortestPathOrder[i];
                 if (!node.isStart && !node.isEnd) {
                     node.element.classList.add('path');
+                    node.element.title = 'Path Node';
+                }
+                
+                // Update progress bar for path animation
+                if (progressBar) {
+                    const progress = 50 + (i / nodesInShortestPathOrder.length) * 50; // Second half of progress
+                    progressBar.style.width = `${progress}%`;
+                }
+                
+                // When animation is complete, update progress to 100%
+                if (i === nodesInShortestPathOrder.length - 1 && progressBar) {
+                    progressBar.style.width = '100%';
                 }
             }, i * animationSpeed * 2); // Path animation is slower for better visibility
         }
@@ -282,6 +505,16 @@ class Grid {
             this.cols = newCols;
             this.initializeGrid();
         }
+    }
+    
+    // Set diagonal movement option
+    setDiagonalMovement(allow) {
+        this.allowDiagonal = allow;
+    }
+    
+    // Set weighted nodes option
+    setWeightedNodes(use) {
+        this.useWeights = use;
     }
 }
 
