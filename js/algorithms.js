@@ -157,8 +157,22 @@ class Algorithms {
         const neighbors = this.grid.getNeighbors(node);
         for (const neighbor of neighbors) {
             if (!neighbor.isVisited) {
-                neighbor.distance = node.distance + 1;
-                neighbor.previousNode = node;
+                // Calculate distance based on node weight and diagonal movement
+                let moveCost = neighbor.weight || 1; // Default to 1 if weight not set
+                
+                // Add additional cost for diagonal movement (approximately 1.414 times more)
+                if (this.grid.allowDiagonal && 
+                    (neighbor.row !== node.row && neighbor.col !== node.col)) {
+                    moveCost *= 1.414; // √2 for diagonal distance
+                }
+                
+                const newDistance = node.distance + moveCost;
+                
+                // Only update if the new path is shorter
+                if (newDistance < neighbor.distance) {
+                    neighbor.distance = newDistance;
+                    neighbor.previousNode = node;
+                }
             }
         }
     }
@@ -169,14 +183,29 @@ class Algorithms {
         
         for (const neighbor of neighbors) {
             if (!neighbor.isVisited) {
-                // Calculate g score (distance from start)
-                const tentativeG = node.g + 1;
+                // Calculate g score based on node weight and diagonal movement
+                let moveCost = neighbor.weight || 1; // Default to 1 if weight not set
+                
+                // Add additional cost for diagonal movement
+                if (this.grid.allowDiagonal && 
+                    (neighbor.row !== node.row && neighbor.col !== node.col)) {
+                    moveCost *= 1.414; // √2 for diagonal distance
+                }
+                
+                const tentativeG = node.g + moveCost;
                 
                 // If this path to neighbor is better than any previous one
                 if (tentativeG < neighbor.g) {
                     neighbor.previousNode = node;
                     neighbor.g = tentativeG;
-                    neighbor.h = this.heuristic(neighbor, endNode);
+                    
+                    // Use appropriate heuristic based on diagonal movement setting
+                    if (this.grid.allowDiagonal) {
+                        neighbor.h = this.calculateDiagonalDistance(neighbor, endNode);
+                    } else {
+                        neighbor.h = this.heuristic(neighbor, endNode);
+                    }
+                    
                     neighbor.f = neighbor.g + neighbor.h;
                 }
             }
@@ -187,18 +216,50 @@ class Algorithms {
     heuristic(nodeA, nodeB) {
         return Math.abs(nodeA.row - nodeB.row) + Math.abs(nodeA.col - nodeB.col);
     }
+    
+    // Calculate Diagonal distance heuristic for A* (with diagonal movement)
+    calculateDiagonalDistance(nodeA, nodeB) {
+        const dx = Math.abs(nodeA.row - nodeB.row);
+        const dy = Math.abs(nodeA.col - nodeB.col);
+        
+        // D = 1 (orthogonal cost), D2 = sqrt(2) (diagonal cost)
+        const D = 1;
+        const D2 = 1.414;
+        
+        // Chebyshev distance with diagonal movement
+        return D * (dx + dy) + (D2 - 2 * D) * Math.min(dx, dy);
+    }
 
     // Get the shortest path from visited nodes
     getNodesInShortestPathOrder(endNode) {
         const nodesInShortestPathOrder = [];
         let currentNode = endNode;
+        let pathDistance = 0;
+        let previousNode = null;
         
+        // Backtrack from the end node to the start node
         while (currentNode !== null) {
-            nodesInShortestPathOrder.unshift(currentNode);
+            // Calculate actual path distance with weights and diagonal movements
+            if (previousNode !== null) {
+                let moveCost = currentNode.weight || 1;
+                
+                // Check if this is a diagonal move
+                if (previousNode.row !== currentNode.row && previousNode.col !== currentNode.col) {
+                    moveCost *= 1.414; // √2 for diagonal distance
+                }
+                
+                pathDistance += moveCost;
+            }
+            
+            nodesInShortestPathOrder.unshift(currentNode); // Add to the beginning
+            previousNode = currentNode;
             currentNode = currentNode.previousNode;
         }
         
-        return nodesInShortestPathOrder;
+        return {
+            path: nodesInShortestPathOrder,
+            distance: pathDistance
+        };
     }
 
     // Run the selected algorithm
@@ -226,17 +287,17 @@ class Algorithms {
                 visitedNodesInOrder = this.dijkstra(startNode, endNode);
         }
         
-        // Get the shortest path
-        const nodesInShortestPathOrder = this.getNodesInShortestPathOrder(endNode);
+        // Get the shortest path with distance information
+        const pathResult = this.getNodesInShortestPathOrder(endNode);
         
         // Calculate distance traveled
         const distanceTraveled = {
             visited: visitedNodesInOrder.length,
-            path: nodesInShortestPathOrder.length,
-            pathDistance: nodesInShortestPathOrder.length > 0 ? nodesInShortestPathOrder.length - 1 : 0
+            path: pathResult.path.length,
+            pathDistance: pathResult.distance.toFixed(1) // Round to 1 decimal place
         };
         
-        return { visitedNodesInOrder, nodesInShortestPathOrder, distanceTraveled };
+        return { visitedNodesInOrder, nodesInShortestPathOrder: pathResult.path, distanceTraveled };
     }
 
     // Reset all nodes before running an algorithm
