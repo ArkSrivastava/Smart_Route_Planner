@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,14 +9,17 @@
 </head>
 <body>
     <header>
-        <h1>Smart Route Planner</h1>
+        <h1><i class="fas fa-route"></i> Smart Route Planner</h1>
         <p>Visualize and compare different pathfinding algorithms</p>
+        <button class="theme-toggle" id="theme-toggle" title="Toggle dark/light mode">
+            <i class="fas fa-moon"></i>
+        </button>
     </header>
 
     <div class="container">
         <div class="controls">
             <div class="algorithm-selection">
-                <h2>Select Algorithm</h2>
+                <h2><i class="fas fa-code-branch"></i> Select Algorithm</h2>
                 <select id="algorithm">
                     <option value="dijkstra">Dijkstra's Algorithm</option>
                     <option value="astar">A* Search</option>
@@ -26,14 +29,25 @@
             </div>
 
             <div class="grid-controls">
-                <h2>Grid Controls</h2>
-                <button id="clear-grid">Clear Grid</button>
-                <button id="clear-path">Clear Path</button>
-                <button id="generate-maze">Generate Maze</button>
+                <h2><i class="fas fa-th"></i> Grid Controls</h2>
+                <button id="clear-grid"><i class="fas fa-trash-alt"></i> Clear Grid</button>
+                <button id="clear-path"><i class="fas fa-eraser"></i> Clear Path</button>
+                <button id="generate-maze"><i class="fas fa-random"></i> Generate Maze</button>
+            </div>
+            
+            <div class="grid-options">
+                <div class="diagonal-option">
+                    <input type="checkbox" id="allow-diagonal">
+                    <label for="allow-diagonal">Allow Diagonal Movement</label>
+                </div>
+                <div class="weight-option">
+                    <input type="checkbox" id="use-weights">
+                    <label for="use-weights">Use Weighted Nodes</label>
+                </div>
             </div>
 
             <div class="node-controls">
-                <h2>Node Controls</h2>
+                <h2><i class="fas fa-map-marker-alt"></i> Node Controls</h2>
                 <div class="node-option">
                     <div class="node-icon start-node"></div>
                     <span>Start Node</span>
@@ -47,6 +61,10 @@
                     <span>Wall Node</span>
                 </div>
                 <div class="node-option">
+                    <div class="node-icon weight-node"></div>
+                    <span>Weight Node (Cost: 5)</span>
+                </div>
+                <div class="node-option">
                     <div class="node-icon visited-node"></div>
                     <span>Visited Node</span>
                 </div>
@@ -57,21 +75,31 @@
             </div>
 
             <div class="speed-control">
-                <h2>Animation Speed</h2>
+                <h2><i class="fas fa-tachometer-alt"></i> Animation Speed</h2>
+                <div class="speed-control-wrapper">
+                    <span class="speed-label"><i class="fas fa-walking"></i> Slow</span>
+                    <span id="speed-value">50</span>
+                    <span class="speed-label"><i class="fas fa-running"></i> Fast</span>
+                </div>
                 <input type="range" id="speed" min="1" max="100" value="50">
-                <span id="speed-value">50</span>
             </div>
 
-            <button id="start-btn" class="start-button">Start Visualization</button>
+            <button id="start-btn" class="start-button"><i class="fas fa-play"></i> Start Visualization</button>
             
             <div class="distance-info">
-                <h2>Distance Information</h2>
+                <h2><i class="fas fa-info-circle"></i> Distance Information</h2>
                 <div id="distance-stats">
                     <p>Nodes visited: <span id="nodes-visited">0</span></p>
                     <p>Path length: <span id="path-length">0</span></p>
                     <p>Distance traveled: <span id="distance-traveled">0</span></p>
                 </div>
             </div>
+            
+            <div class="progress-container" id="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <button id="tutorial-btn" class="tutorial-button"><i class="fas fa-question-circle"></i> Show Tutorial</button>
         </div>
 
         <div class="grid-container">
@@ -80,7 +108,7 @@
     </div>
 
     <div class="algorithm-info">
-        <h2>Algorithm Information</h2>
+        <h2><i class="fas fa-book"></i> Algorithm Information</h2>
         <div id="algorithm-description">
             <h3>Dijkstra's Algorithm</h3>
             <p>Dijkstra's algorithm is a weighted algorithm that guarantees the shortest path. It works by visiting nodes in order of increasing distance from the start node.</p>
@@ -88,11 +116,36 @@
             <p><strong>Space Complexity:</strong> O(V)</p>
         </div>
     </div>
+    
+    <div class="tutorial-container" id="tutorial-modal">
+        <div class="tutorial">
+            <h2><i class="fas fa-question-circle"></i> How to Use</h2>
+            <button id="close-tutorial" class="close-tutorial"><i class="fas fa-times"></i></button>
+            <div class="tutorial-steps">
+                <div class="tutorial-step">
+                    <h3><i>1</i> Select an Algorithm</h3>
+                    <p>Choose from Dijkstra's, A*, BFS, or DFS algorithms. Each has different strengths and use cases.</p>
+                    <p>Weighted algorithms (Dijkstra's and A*) consider node weights, while unweighted algorithms (BFS and DFS) do not.</p>
+                </div>
+                <div class="tutorial-step">
+                    <h3><i>2</i> Customize Your Grid</h3>
+                    <p>Click and drag to draw walls that block the path.</p>
+                    <p>When weighted nodes are enabled, press 'W' while clicking to create weighted nodes.</p>
+                    <p>Drag the start (green) and end (red) nodes to reposition them.</p>
+                </div>
+                <div class="tutorial-step">
+                    <h3><i>3</i> Run the Visualization</h3>
+                    <p>Click the "Start Visualization" button to see the algorithm in action.</p>
+                    <p>Adjust the animation speed slider to control how fast the visualization runs.</p>
+                    <p>Watch as the algorithm explores the grid and finds the shortest path!</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer>
-        <p>Created by Smart Route Planner Team | <a href="https://github.com/" target="_blank"><i class="fab fa-github"></i> GitHub</a></p>
+        <p>&copy; 2025 Smart Route Planner. All rights reserved.</p>
     </footer>
-
     <script src="js/grid.js"></script>
     <script src="js/algorithms.js"></script>
     <script src="js/main.js"></script>
